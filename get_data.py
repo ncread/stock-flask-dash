@@ -2,27 +2,18 @@ import yfinance as yf
 import pandas as pd
 import plotly
 import plotly.express as px
-import requests
-from curl_cffi import requests as cffi_requests
+from functools import lru_cache
 
-############################################  
-def get_historical_data(tickers, time_period):
-    ''' input: list of stock tickers and (yfinance supported) time period string
+
+@lru_cache(maxsize=128)
+def get_historical_data(tickers_tuple: tuple, time_period: str) -> pd.DataFrame:
+    ''' 
+        input: tuple of stock tickers and (yfinance supported) time period string
             1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max, etc
         output: dataframe with yfinance historical data
     '''
 
-    # session = cffi_requests.Session(
-    #     headers={
-    #         "User-Agent": (
-    #             "Mozilla/5.0 (X11; Linux x86_64) "
-    #             "AppleWebKit/537.36 (KHTML, like Gecko) "
-    #             "Chrome/120.0.0.0 Safari/537.36"
-    #         )
-    #     }
-    # )
-
-    tickers = [i.upper() for i in tickers]
+    tickers = [i.upper() for i in tickers_tuple]
     frames = []
     # df = yf.download(tickers, period=time_period)
 
@@ -48,8 +39,8 @@ def get_historical_data(tickers, time_period):
         frames.append(df)
     return pd.concat(frames, axis=1).sort_index(axis=1)
 
-#############################################
-def create_returns(dataframe):
+
+def create_returns(dataframe: pd.DataFrame) -> pd.DataFrame:
     '''
         input: output from get_historical_data function, grabs the Delta columns to create returns
         output: dataframe with time series returns
@@ -59,8 +50,8 @@ def create_returns(dataframe):
     returns_df = pd.concat(returns_list, axis=1)
     return returns_df
 
-#############################################
-def generate_corr_plot(df, ticker_list, time_period_corr):
+
+def generate_corr_plot(df: pd.DataFrame, time_period_corr: str):
     '''
         input: list of tickers, time period
         output: correlation matrix plot to be passed to html
@@ -79,8 +70,9 @@ def generate_corr_plot(df, ticker_list, time_period_corr):
     corr_plot = plotly.io.to_html(fig, full_html=False)
     return corr_plot
 
-#############################################
-def get_metrics(ticker_list):
+
+@lru_cache(maxsize=128)
+def get_metrics(tickers_tuple: tuple) -> dict:
     '''
         input: list of tickers
         output: dictionary w/ tickers as keys, list of metrics as corresponding values
@@ -90,19 +82,25 @@ def get_metrics(ticker_list):
     stock_names = []
     values_list = []
 
-    for i in ticker_list:
-        stock_names.append(yf.Ticker(i).info.get('shortName'))
-        metric_list = [yf.Ticker(i).info.get(j) for j in metrics_info]
+    for ticker in tickers_tuple:
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        
+        stock_names.append(info.get('shortName', ticker))
+        metric_list = [info.get(j) for j in metrics_info]
+        
         try:
-            earnings_element = yf.Ticker(i).calendar.get('Earnings Date')
+            earnings_element = stock.calendar.get('Earnings Date')
             earnings_date = str(earnings_element[0])
         except Exception as e:
             earnings_date = 'None'
+        
         metric_list.append(earnings_date)
         values_list.append(metric_list)
-        
-        final_dict = dict(zip(stock_names, values_list))
+
+    final_dict = dict(zip(stock_names, values_list))
     
+    #market cap formatting
     for i in final_dict.values():
         if i[2] is not None and i[2] > 1000000000000:
             i[2] = f'{round(i[2] / 1000000000000, 2)}T'
@@ -115,8 +113,8 @@ def get_metrics(ticker_list):
 
     return final_dict
 
-#############################################
-def get_time_series(df, ticker, time_period):
+
+def get_time_series(df: pd.DataFrame, ticker: str, time_period: str):
     '''
         input: output from get_historical_data function, takes a single ticker and time period
         output: plotly time series line chart for unique ticker/time period with Closing Prices, 
@@ -146,6 +144,6 @@ def get_time_series(df, ticker, time_period):
     time_series_plot = plotly.io.to_html(fig, full_html=False)
     return time_series_plot
 
-# print(get_historical_data('nvda','1y'))
+
 if __name__ == '__main__':
     pass
