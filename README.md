@@ -1,16 +1,36 @@
 # Stock Information Project
-## Python, Flask, HTML, CSS
 
-************************************************************
+A web application written in Python, leveraging the Flask framework.
 
-The purpose of this project was to provide users a space to consume vital information about a group of public companies' stocks. Ultimately the final iteration of the Flask web application included a form for the user to input some number of asset tickers, whether they represent individual publicly-traded companies, crypto symbols, ETFs, larger indexes, etc. A correlation matrix is displayed with regard to each asset's returns over some period of time (that the user also chooses on the web app). Superfluous information such as full company name, current asset price, beta, market cap, and trailing and forward price-to-earnings ratios are also displayed in a tabular format. 
 
-If applicable, any chosen public company will also have their upcoming earnings date included as well. Further down the page houses historical price information of each asset, including asset price, simple and exponential moving averages, and Bollinger Bands. These are plotly graphics allowing the user to curate the graph to whatever display he/she would like before having the capacity to download the plot. 
+## Overview
 
-***********************************************************
+This web application receives user-inputted market tickers (AAPL, NVDA, etc.) and timeframe (6 months, 1 year, etc.) and displays the following:
 
-This project utilized Python, specifically the Yahoo Finance and Plotly Express packages. Flask is the framework, with structure and styling constructed with HTML and CSS. 
+* Correlation matrix including asset return correlations for provided tickers over the provided timeframe
+* Table with current share price, 5-year beta value, market cap, trailing & forward price-to-earnings ratios, and upcoming earnings date (if applicable)
+* time-series price graphs with share price, 10, 50 and 200-day simple and exponential moving average prices, and upper and lower Bollinger bands.
 
-The initial plan was to try out Vercel for the first time to host this project, yet I came across a few pitfalls related to the storage size of the entire application (including dependencies). I wasn't able to reduce the storage size of the app enough to fit within the 250 MB requirements, so Render was utilized instead of Vercel. Along with UptimeRobot to avoid cold starts by the Render server, the free tier of Render is perfectly suitable. Knowing a little more about what Vercel expects will be helpful for future projects down the line.
+Graphics on the webapp are plotly express images, so they are able to be downloaded at the click of a button to share or use elsewhere. The time-series charts are interactive, allowing users to toggle whatever metrics they would like to see and to hover over each chart for specific prices.
 
-Thanks for reading, and enjoy. Please feel free to reach out with thoughts or improvements.
+## Project Structure
+```
+stock-flask-dash/
+├── get_data.py
+├── main.py
+├── Procfile #necessary for Render deployment
+├── pyproject.toml
+├── README.md
+├── requirements.txt
+├── static
+│   └── styles.css
+├── templates
+│   └── index.html
+└── uv.lock
+```
+
+## Other
+
+The initial plan was to try out Vercel for the first time to host this project, yet I came across a few pitfalls related to the storage size of the entire application (including dependencies). I wasn't able to reduce the storage size of the app enough to fit within the 250 MB requirements, so Render was utilized instead of Vercel. Along with UptimeRobot to avoid cold starts by the Render server, the free tier of Render is suitable, however I have run into fairly frequent issues pinging the Yahoo Finance servers through Render's IP address. Knowing a little more about what Vercel expects will be helpful for future projects down the line.
+
+Thanks for reading, and enjoy the web app! I hope it will be useful to others. Please feel free to reach out with thoughts or improvements.
